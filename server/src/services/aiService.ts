@@ -13,7 +13,9 @@ export async function parseJobDescription(jd: string): Promise<ParsedJob> {
     messages: [
       {
         role: "system",
-        content: `Extract job details from the description and return ONLY valid JSON with this exact shape:
+        content: `You are an expert job description parser. Extract job details from ANY text — even messy, incomplete, or informal input. Make smart inferences where information is missing.
+
+Return ONLY valid JSON with this exact shape:
 {
   "company": string,
   "role": string,
@@ -23,7 +25,15 @@ export async function parseJobDescription(jd: string): Promise<ParsedJob> {
   "location": string,
   "salaryRange": string
 }
-If salary is not mentioned, return an empty string for salaryRange.`,
+
+Rules:
+- If company is not mentioned, infer from context or use "Not specified"
+- If role is not mentioned, infer from skills/context or use "Software Engineer"
+- Extract all technical skills mentioned anywhere in the text
+- If seniority not mentioned, infer from years of experience or context
+- If location not mentioned, use "Remote / Not specified"
+- If salary not mentioned, use empty string
+- NEVER return null or undefined for any field — always return a string or array`,
       },
       { role: "user", content: jd },
     ],
@@ -33,9 +43,13 @@ If salary is not mentioned, return an empty string for salaryRange.`,
   if (!raw) throw new Error("Empty response from Groq");
 
   const parsed = JSON.parse(raw) as ParsedJob;
-  if (!parsed.company || !parsed.role) {
-    throw new Error("AI returned incomplete job data");
-  }
+  parsed.company = parsed.company || "Not specified";
+  parsed.role = parsed.role || "Software Engineer";
+  parsed.requiredSkills = parsed.requiredSkills || [];
+  parsed.niceToHaveSkills = parsed.niceToHaveSkills || [];
+  parsed.seniority = parsed.seniority || "";
+  parsed.location = parsed.location || "";
+  parsed.salaryRange = parsed.salaryRange || "";
   return parsed;
 }
 
