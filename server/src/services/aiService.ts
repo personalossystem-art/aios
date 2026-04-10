@@ -1,6 +1,8 @@
 import Groq from "groq-sdk";
 import type { ParsedJob, ResumeSuggestions } from "../types";
 
+const MODEL = "llama-3.1-8b-instant";
+
 function getClient() {
   if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY is not set");
   return new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -8,7 +10,7 @@ function getClient() {
 
 export async function parseJobDescription(jd: string): Promise<ParsedJob> {
   const response = await getClient().chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: MODEL,
     response_format: { type: "json_object" },
     messages: [
       {
@@ -43,7 +45,7 @@ export async function generateResumeBullets(
   parsedJob: ParsedJob
 ): Promise<ResumeSuggestions> {
   const response = await getClient().chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: MODEL,
     response_format: { type: "json_object" },
     messages: [
       {
