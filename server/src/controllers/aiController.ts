@@ -13,8 +13,14 @@ export const parseJD = async (
   }
   try {
     const parsed = await parseJobDescription(jobDescription);
-    const suggestions = await generateResumeBullets(parsed);
-    res.json({ parsed, suggestions: suggestions.bullets });
+    let bullets: string[] = [];
+    try {
+      const suggestions = await generateResumeBullets(parsed);
+      bullets = suggestions.bullets;
+    } catch {
+      // bullets generation failed silently — parsing still succeeds
+    }
+    res.json({ parsed, suggestions: bullets });
   } catch (err) {
     const message = err instanceof Error ? err.message : "AI parsing failed";
     res.status(502).json({ message });
