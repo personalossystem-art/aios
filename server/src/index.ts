@@ -8,13 +8,22 @@ import aiRoutes from "./routes/ai";
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
-app.use(express.json());
+app.use(cors({
+  origin: [
+    process.env.CLIENT_URL || "http://localhost:5173",
+    "http://localhost:5173",
+    "https://job-trackerapp.web.app",
+    "https://job-trackerapp.firebaseapp.com",
+  ],
+  credentials: true,
+}));
+app.use(express.json({ limit: "10mb" }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/ai", aiRoutes);
 
+app.get("/", (_req, res) => res.json({ status: "ok", message: "Job Tracker API" }));
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 
 const PORT = process.env.PORT || 5000;
